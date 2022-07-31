@@ -24,6 +24,10 @@ module.exports = {
       fontSize: {
         md: ["15px", { lineHeight: "19px" }],
       },
+      spacing: {
+        38: "9.5rem",
+        75: "18.75rem",
+      },
     },
   },
   plugins: [require("@tailwindcss/forms")],

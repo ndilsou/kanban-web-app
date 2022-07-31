@@ -1,11 +1,12 @@
-import { NextPage } from "next";
 import Board, { Column } from "@kanban/components/board";
 import Navigation from "@kanban/components/navigation";
-import SideMenu from "@kanban/components/side-menu";
 import clsx from "clsx";
+import { NextPage } from "next";
+import { useEffect, useState } from "react";
 
 const Page: NextPage = () => {
   //   const hello = trpc.useQuery(["example.hello", { text: "from tRPC" }]);
+  const [menuIsOpen, setMenuIsOpen] = useState(false);
   const columns: Column[] = [
     {
       name: "Todo",
@@ -24,7 +25,11 @@ const Page: NextPage = () => {
   ];
   const boards = ["Platform Launch", "Marketing Plan", "Roadmap"];
   const activeBoard = "Platform Launch";
-  const menuIsOpen = false;
+  useEffect(() => {
+    setTimeout(() => {
+      setMenuIsOpen(true);
+    }, 2000);
+  });
   return (
     <div className="relative h-full w-full">
       <header className="h-fit bg-white">
@@ -37,9 +42,9 @@ const Page: NextPage = () => {
       <main
         className={clsx(
           {
-            "translate-x-52": menuIsOpen,
+            "translate-x-72 lg:translate-x-75": menuIsOpen,
           },
-          "h-full overflow-scroll transition-transform delay-[2000ms] duration-1000 ease-in-out"
+          "h-full overflow-scroll transition-transform delay-150 duration-500 ease-in-out"
         )}
       >
         <Board columns={columns} />

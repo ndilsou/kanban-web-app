@@ -26,14 +26,14 @@ const Navigation: FC<NavigationProps> = ({
   return (
     <div className="flex h-16 flex-row items-center justify-between bg-white px-4 md:h-20 md:border-b md:pr-6 md:pl-0 lg:h-24 lg:pr-8">
       <div className="flex h-full flex-row items-center">
-        <MainLogo />
-        <SidebarMenu open={openMenu} />
+        <MainMenu open={openMenu} />
+        {/* <SidebarMenu open={openMenu} /> */}
         <div className="ml-4 md:ml-6 lg:ml-8">
           <h2 className="hidden text-xl font-bold leading-6 md:block lg:text-2xl">
             {activeBoard}
           </h2>
           <div className="md:hidden">
-            <BoardSelectionPopover activeBoard={activeBoard} boards={boards} />
+            <BoardListbox activeBoard={activeBoard} boards={boards} />
           </div>
         </div>
       </div>
@@ -47,15 +47,12 @@ const Navigation: FC<NavigationProps> = ({
 
 export default Navigation;
 
-interface BoardSelectionPopoverProps {
+interface BoardListboxProps {
   activeBoard: string;
   boards: string[];
 }
 
-const BoardSelectionPopover: FC<BoardSelectionPopoverProps> = ({
-  activeBoard,
-  boards,
-}) => (
+const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
   <Popover className="relative">
     {({ open }) => (
       <>
@@ -77,7 +74,7 @@ const BoardSelectionPopover: FC<BoardSelectionPopoverProps> = ({
         >
           <Popover.Panel className="fixed top-20 left-14 z-10  min-h-fit w-64 rounded-lg bg-white py-4 shadow-lg">
             <div className="pr-6">
-              <BoardSelection boards={boards} active={activeBoard} />
+              <BoardList boards={boards} active={activeBoard} />
             </div>
             <div className="mt-4 px-4">
               <ThemeToggle />
@@ -89,12 +86,12 @@ const BoardSelectionPopover: FC<BoardSelectionPopoverProps> = ({
   </Popover>
 );
 
-interface BoardSelectionProps {
+interface BoardListProps {
   active: string;
   boards: string[];
 }
 
-const BoardSelection: FC<BoardSelectionProps> = ({ active, boards }) => {
+const BoardList: FC<BoardListProps> = ({ active, boards }) => {
   return (
     <div className="flex flex-col">
       <h3 className="pl-6 text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
@@ -204,29 +201,31 @@ const BoardSettingsButton: FC = () => {
   );
 };
 
-interface MainLogoProps {}
-
-const MainLogo: FC<MainLogoProps> = () => {
-  return (
-    <div className="flex h-full w-52 flex-row items-center md:border-r md:px-6 lg:px-8">
-      <MobileLogo className="h-6 w-6 md:hidden" />
-      <LogoLightIcon className="hidden h-7 w-40 md:block" />
-      <LogoDarkIcon className="hidden h-7 w-40 dark:md:block" />
-    </div>
-  );
-};
-
-interface SidebarMenuProps {
+interface MainLogoProps {
   open?: boolean;
 }
 
-const SidebarMenu: FC<SidebarMenuProps> = ({ open = false }) => {
+const MainMenu: FC<MainLogoProps> = ({ open = false }) => {
   return (
-    <aside
-      className={clsx(
-        open ? "translate-x-0 -translate-y-px" : "-translate-x-52",
-        "fixed top-20 left-0 h-full w-52 border-r bg-white transition-transform delay-[2000ms] duration-1000 ease-in-out"
-      )}
-    ></aside>
+    <>
+      <div
+        className={clsx(
+          open ? "w-72 lg:w-75" : "w-52",
+          "flex h-full  flex-row items-center transition-[width] delay-150 duration-300 ease-in-out md:border-r md:px-6 lg:px-8"
+        )}
+      >
+        <MobileLogo className="h-6 w-6 md:hidden" />
+        <LogoLightIcon className="hidden h-6 w-38 md:block" />
+        <LogoDarkIcon className="hidden h-6 w-38 dark:md:block" />
+      </div>
+      <aside
+        className={clsx(
+          open
+            ? "translate-x-0 -translate-y-px"
+            : "-translate-x-72 lg:-translate-x-75",
+          "fixed top-20 left-0 hidden h-full w-72 border-r bg-white transition-transform delay-150 duration-500 ease-in-out md:flex lg:w-75"
+        )}
+      ></aside>
+    </>
   );
 };
