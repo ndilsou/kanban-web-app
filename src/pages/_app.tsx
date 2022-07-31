@@ -2,10 +2,9 @@
 import type { AppRouter } from "@kanban/server/router";
 import "@kanban/styles/globals.css";
 import { withTRPC } from "@trpc/next";
-import { NextComponentType, NextPage } from "next";
+import { NextPage } from "next";
 import { SessionProvider } from "next-auth/react";
-import { AppInitialProps, AppProps } from "next/app";
-import { AppContextType, AppPropsType } from "next/dist/shared/lib/utils";
+import { AppProps } from "next/app";
 import type { AppType } from "next/dist/shared/lib/utils";
 import { ReactElement, ReactNode } from "react";
 import superjson from "superjson";

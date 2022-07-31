@@ -17,7 +17,7 @@ class MyDocument extends Document {
           />
           <link rel="icon" href="/favicon-32x32.png" />
         </Head>
-        <body className="h-screen w-screen bg-light-grey font-plus-jakarta-sans antialiased">
+        <body className="h-screen w-screen overflow-hidden bg-light-grey font-plus-jakarta-sans antialiased">
           <Main />
           <NextScript />
         </body>
