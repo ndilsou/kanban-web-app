@@ -27,12 +27,13 @@ const Page: NextPage = () => {
   const activeBoard = "Platform Launch";
   useEffect(() => {
     setTimeout(() => {
-      setMenuIsOpen(true);
+      setMenuIsOpen(false);
     }, 2000);
   });
+  //
   return (
-    <div className="relative h-full w-full">
-      <header className="h-fit bg-white">
+    <div className="relative h-full w-full  bg-light-grey dark:bg-very-dark-grey">
+      <header className="h-fit bg-white dark:bg-dark-grey">
         <Navigation
           activeBoard={activeBoard}
           boards={boards}
@@ -42,9 +43,10 @@ const Page: NextPage = () => {
       <main
         className={clsx(
           {
-            "translate-x-72 lg:translate-x-75": menuIsOpen,
+            "w-[calc(100%-18rem)] translate-x-72 lg:w-[calc(100%-18.75rem)] lg:translate-x-75":
+              menuIsOpen,
           },
-          "h-full overflow-scroll transition-transform delay-150 duration-500 ease-in-out"
+          "h-full overflow-hidden transition-[width,transform] delay-150 duration-500 ease-in-out"
         )}
       >
         <Board columns={columns} />

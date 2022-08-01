@@ -1,6 +1,7 @@
 import { Popover, Switch, Transition } from "@headlessui/react";
 import clsx from "clsx";
-import { FC, Fragment, useEffect, useState } from "react";
+import { FC, Fragment, useContext, useEffect, useState } from "react";
+import { ThemeContext } from "./contexts";
 import {
   BoardIcon,
   ChevronDownIcon,
@@ -24,12 +25,11 @@ const Navigation: FC<NavigationProps> = ({
   openMenu = false,
 }) => {
   return (
-    <div className="flex h-16 flex-row items-center justify-between bg-white px-4 md:h-20 md:border-b md:pr-6 md:pl-0 lg:h-24 lg:pr-8">
+    <div className="flex h-16 flex-row items-center justify-between border-lines-light bg-white px-4 dark:border-lines-dark dark:bg-dark-grey md:h-20 md:border-b md:pr-6 md:pl-0 lg:h-24 lg:pr-8">
       <div className="flex h-full flex-row items-center">
-        <MainMenu open={openMenu} />
-        {/* <SidebarMenu open={openMenu} /> */}
+        <MainMenu activeBoard={activeBoard} boards={boards} open={openMenu} />
         <div className="ml-4 md:ml-6 lg:ml-8">
-          <h2 className="hidden text-xl font-bold leading-6 md:block lg:text-2xl">
+          <h2 className="hidden text-xl font-bold leading-6 dark:text-white md:block lg:text-2xl">
             {activeBoard}
           </h2>
           <div className="md:hidden">
@@ -57,7 +57,9 @@ const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
     {({ open }) => (
       <>
         <Popover.Button className="flex flex-row items-center">
-          <h2 className="text-lg font-bold leading-6">{activeBoard}</h2>
+          <h2 className="text-lg font-bold leading-6 dark:text-white">
+            {activeBoard}
+          </h2>
           <div className="ml-2 flex items-center justify-center">
             {open ? <ChevronUpIcon /> : <ChevronDownIcon />}
           </div>
@@ -72,9 +74,9 @@ const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 translate-y-1"
         >
-          <Popover.Panel className="fixed top-20 left-14 z-10  min-h-fit w-64 rounded-lg bg-white py-4 shadow-lg">
+          <Popover.Panel className="fixed top-20 left-14 z-10  min-h-fit w-64 rounded-lg bg-white py-4 shadow-lg dark:bg-dark-grey">
             <div className="pr-6">
-              <BoardList boards={boards} active={activeBoard} />
+              <BoardList boards={boards} activeBoard={activeBoard} />
             </div>
             <div className="mt-4 px-4">
               <ThemeToggle />
@@ -87,11 +89,11 @@ const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
 );
 
 interface BoardListProps {
-  active: string;
+  activeBoard: string;
   boards: string[];
 }
 
-const BoardList: FC<BoardListProps> = ({ active, boards }) => {
+const BoardList: FC<BoardListProps> = ({ activeBoard: active, boards }) => {
   return (
     <div className="flex flex-col">
       <h3 className="pl-6 text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
@@ -125,30 +127,21 @@ const BoardList: FC<BoardListProps> = ({ active, boards }) => {
 interface ThemeToggleProps {}
 
 const ThemeToggle: FC<ThemeToggleProps> = () => {
-  const [isDarkThemeEnabled, enableDarkTheme] = useState(false);
-  // const theme = useContext(ThemeContext);
-
-  useEffect(() => {
-    if (isDarkThemeEnabled) {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
-  }, [isDarkThemeEnabled]);
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   return (
-    <div className="flex h-12 w-full items-center justify-center gap-6 rounded-md bg-light-grey">
+    <div className="flex h-12 w-full items-center justify-center gap-6 rounded-md bg-light-grey dark:bg-very-dark-grey">
       <LightThemeIcon className="h-5 w-5 fill-current text-medium-grey" />
       <Switch
-        checked={isDarkThemeEnabled}
-        onChange={enableDarkTheme}
+        checked={theme === "dark"}
+        onChange={toggleTheme}
         className={`relative inline-flex h-[19px] w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-main-purple transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white focus-visible:ring-opacity-75`}
       >
         <span className="sr-only">Toggle Dark Theme</span>
         <span
           aria-hidden="true"
           className={`${
-            isDarkThemeEnabled ? "translate-x-[22px]" : "translate-x-0"
+            theme === "dark" ? "translate-x-[22px]" : "translate-x-0"
           }
             pointer-events-none my-auto inline-block h-[14px] w-[14px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
         />
@@ -202,30 +195,45 @@ const BoardSettingsButton: FC = () => {
 };
 
 interface MainLogoProps {
+  activeBoard: string;
+  boards: string[];
   open?: boolean;
 }
 
-const MainMenu: FC<MainLogoProps> = ({ open = false }) => {
+const MainMenu: FC<MainLogoProps> = ({ activeBoard, boards, open = false }) => {
+  const { theme } = useContext(ThemeContext);
   return (
     <>
       <div
         className={clsx(
-          open ? "w-72 lg:w-75" : "w-52",
-          "flex h-full  flex-row items-center transition-[width] delay-150 duration-300 ease-in-out md:border-r md:px-6 lg:px-8"
+          open ? "w-72 lg:w-75" : "md:w-52",
+          "flex h-full  flex-row items-center border-lines-light transition-[width] delay-150 duration-300 ease-in-out dark:border-lines-dark md:border-r md:px-6 lg:px-8"
         )}
       >
         <MobileLogo className="h-6 w-6 md:hidden" />
-        <LogoLightIcon className="hidden h-6 w-38 md:block" />
-        <LogoDarkIcon className="hidden h-6 w-38 dark:md:block" />
+        {theme === "light" ? (
+          <LogoLightIcon className="hidden h-6 w-38 md:block" />
+        ) : (
+          <LogoDarkIcon className="hidden h-6 w-38 dark:md:block" />
+        )}
       </div>
       <aside
         className={clsx(
           open
             ? "translate-x-0 -translate-y-px"
             : "-translate-x-72 lg:-translate-x-75",
-          "fixed top-20 left-0 hidden h-full w-72 border-r bg-white transition-transform delay-150 duration-500 ease-in-out md:flex lg:w-75"
+          "fixed top-20 left-0 hidden h-full w-72 border-r border-lines-light bg-white transition-transform delay-150 duration-500 ease-in-out dark:border-lines-dark dark:bg-dark-grey md:block lg:top-24 lg:w-75"
         )}
-      ></aside>
+      >
+        <div className="relative mt-8 flex h-full flex-col">
+          <div className="pr-5">
+            <BoardList activeBoard={activeBoard} boards={boards} />
+          </div>
+          <div className="fixed top-[650px] w-full px-3 lg:px-6">
+            <ThemeToggle />
+          </div>
+        </div>
+      </aside>
     </>
   );
 };

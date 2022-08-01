@@ -1,4 +1,5 @@
 // src/pages/_app.tsx
+import { ThemeContextProvider } from "@kanban/components/contexts";
 import type { AppRouter } from "@kanban/server/router";
 import "@kanban/styles/globals.css";
 import { withTRPC } from "@trpc/next";
@@ -8,6 +9,7 @@ import { AppProps } from "next/app";
 import type { AppType } from "next/dist/shared/lib/utils";
 import { ReactElement, ReactNode } from "react";
 import superjson from "superjson";
+
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout: (page: ReactElement) => ReactNode;
 };
@@ -30,7 +32,9 @@ const MyApp: AppType = ({
   }
   return (
     <SessionProvider session={session}>
-      {getLayout(<Component {...pageProps} />)}
+      <ThemeContextProvider>
+        {getLayout(<Component {...pageProps} />)}
+      </ThemeContextProvider>
     </SessionProvider>
   );
 };

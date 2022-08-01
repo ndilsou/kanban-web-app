@@ -85,8 +85,10 @@ interface CardProps {}
 
 const Card: FC<CardProps> = () => {
   return (
-    <button className="flex h-20 w-72 flex-col items-start justify-center rounded-lg bg-white px-4 text-left font-bold shadow-lg">
-      <h5 className=" text-md  text-black">Build UI for onboarding flow</h5>
+    <button className="flex h-20 w-72 flex-col items-start justify-center rounded-lg bg-white px-4 text-left font-bold shadow-lg dark:bg-dark-grey">
+      <h5 className=" text-md  text-black dark:text-white">
+        Build UI for onboarding flow
+      </h5>
       <span className="mt-2 text-xs text-medium-grey">0 of 3 substacks</span>
     </button>
   );

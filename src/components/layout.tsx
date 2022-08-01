@@ -9,11 +9,10 @@ export interface SiteLayoutProps {
 
 const Layout: FC<SiteLayoutProps> = ({ className, children }) => {
   return (
-    <div className={clsx(className, "h-full w-full ")}>
-      <header className="h-16 bg-white">
-        <Navigation />
-      </header>
-      <main className="h-full">{children}</main>
+    <div className={clsx(className, "h-full w-full")}>
+      <header className="h-fit bg-white">{/* <Navigation /> */}</header>
+      <aside></aside>
+      <main className="h-full overflow-scroll">{children}</main>
     </div>
   );
 };
