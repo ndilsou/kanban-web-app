@@ -1,9 +1,9 @@
+import { Dialog } from "@headlessui/react";
 import { FC } from "react";
-
-export type Column = { name: string; tasks: string[] };
+import { Column as ColumnData, Task } from "@kanban/domain";
 
 export interface BoardProps {
-  columns: Column[];
+  columns: ColumnData[];
 }
 
 const Board: FC<BoardProps> = ({ columns }) => {
@@ -12,8 +12,8 @@ const Board: FC<BoardProps> = ({ columns }) => {
       {columns.length > 0 ? (
         <div className="h-full w-full overflow-scroll">
           <div className="flex  min-h-max w-fit justify-center gap-6 px-4 pt-6 pb-12 md:px-6">
-            {columns.map((data) => (
-              <Column key={data.name} data={data} />
+            {columns.map((col) => (
+              <Column key={col.name} data={col} />
             ))}
             <AddNewColumn />
           </div>
@@ -44,7 +44,7 @@ const EmptyBoardWidget: FC = () => {
 
 const AddNewColumn: FC = () => {
   return (
-    <button className="mt-10 h-[814px] w-72 rounded-md bg-lines-light">
+    <button className="mt-10 h-[814px] w-72 rounded-md bg-lines-light dark:bg-inherit dark:bg-dark-gradient">
       <span className="text-center text-2xl font-bold text-medium-grey">
         + New Column
       </span>
@@ -53,7 +53,7 @@ const AddNewColumn: FC = () => {
 };
 
 interface ColumnProps {
-  data: { name: string; tasks: string[] };
+  data: ColumnData;
 }
 
 /** Column is a Kanban Board column containing cards */
@@ -74,22 +74,132 @@ const Column: FC<ColumnProps> = ({ data }) => {
       </div>
       <div className="mt-5 grid h-fit grid-cols-1 gap-5">
         {data.tasks.map((task) => (
-          <Card key={task} />
+          <Card key={task.title} task={task} />
         ))}
       </div>
     </div>
   );
 };
 
-interface CardProps {}
+interface CardProps {
+  task: Task;
+}
 
-const Card: FC<CardProps> = () => {
+const Card: FC<CardProps> = ({ task }) => {
+  const completedCount = task.subtasks.reduce(
+    (sum, st) => sum + (st.isCompleted ? 1 : 0),
+    0
+  );
+  const summary = `${completedCount} of ${task.subtasks.length} substacks`;
   return (
-    <button className="flex h-20 w-72 flex-col items-start justify-center rounded-lg bg-white px-4 text-left font-bold shadow-lg dark:bg-dark-grey">
-      <h5 className=" text-md  text-black dark:text-white">
-        Build UI for onboarding flow
-      </h5>
-      <span className="mt-2 text-xs text-medium-grey">0 of 3 substacks</span>
+    <button className="flex w-72 flex-col items-start justify-center rounded-lg bg-white px-4 py-6 text-left font-bold shadow-lg dark:bg-dark-grey">
+      <h5 className=" text-md  text-black dark:text-white">{task.title}</h5>
+      <span className="mt-2 text-xs text-medium-grey">{summary}</span>
     </button>
+  );
+};
+
+interface ViewCardModalProps {
+  open: boolean;
+}
+
+const ViewCardModal: FC<ViewCardModalProps> = ({ open }) => {
+  return (
+    <Dialog className="relative z-50" open={open} onClose={() => {}}>
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+      <Dialog.Panel>
+        <Dialog.Title>Deactivate account</Dialog.Title>
+        <Dialog.Description>
+          This will permanently deactivate your account
+        </Dialog.Description>
+
+        <p>
+          Are you sure you want to deactivate your account? All of your data
+          will be permanently removed. This action cannot be undone.
+        </p>
+
+        <button onClick={() => {}}>Deactivate</button>
+        <button onClick={() => {}}>Cancel</button>
+      </Dialog.Panel>
+    </Dialog>
+  );
+};
+
+interface TaskModalProps {
+  open: boolean;
+}
+
+const TaskModal: FC<TaskModalProps> = ({ open }) => {
+  return (
+    <Dialog className="relative z-50" open={open} onClose={() => {}}>
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <Dialog.Panel>
+        <Dialog.Title>Deactivate account</Dialog.Title>
+        <Dialog.Description>
+          This will permanently deactivate your account
+        </Dialog.Description>
+
+        <p>
+          Are you sure you want to deactivate your account? All of your data
+          will be permanently removed. This action cannot be undone.
+        </p>
+
+        <button onClick={() => {}}>Deactivate</button>
+        <button onClick={() => {}}>Cancel</button>
+      </Dialog.Panel>
+    </Dialog>
+  );
+};
+
+interface BoardModalProps {
+  open: boolean;
+}
+
+const BoardModal: FC<BoardModalProps> = ({ open }) => {
+  return (
+    <Dialog className="relative z-50" open={open} onClose={() => {}}>
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <Dialog.Panel>
+        <Dialog.Title>Deactivate account</Dialog.Title>
+        <Dialog.Description>
+          This will permanently deactivate your account
+        </Dialog.Description>
+
+        <p>
+          Are you sure you want to deactivate your account? All of your data
+          will be permanently removed. This action cannot be undone.
+        </p>
+
+        <button onClick={() => {}}>Deactivate</button>
+        <button onClick={() => {}}>Cancel</button>
+      </Dialog.Panel>
+    </Dialog>
+  );
+};
+
+interface DeleteModalProps {
+  open: boolean;
+}
+
+const DeleteModal: FC<DeleteModalProps> = ({ open }) => {
+  return (
+    <Dialog className="relative z-50" open={open} onClose={() => {}}>
+      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+      <Dialog.Panel>
+        <Dialog.Title>Deactivate account</Dialog.Title>
+        <Dialog.Description>
+          This will permanently deactivate your account
+        </Dialog.Description>
+
+        <p>
+          Are you sure you want to deactivate your account? All of your data
+          will be permanently removed. This action cannot be undone.
+        </p>
+
+        <button onClick={() => {}}>Deactivate</button>
+        <button onClick={() => {}}>Cancel</button>
+      </Dialog.Panel>
+    </Dialog>
   );
 };

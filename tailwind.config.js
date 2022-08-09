@@ -21,6 +21,10 @@ module.exports = {
         red: "hsl(0,78%,63%)",
         "hover-red": "hsl(0,100%,80%)",
       },
+      backgroundImage: {
+        "dark-gradient":
+          "linear-gradient(180deg, rgba(43, 44, 55, 25%) 0%, rgba(43, 44, 55, 12.5%) 100%)",
+      },
       fontSize: {
         md: ["15px", { lineHeight: "19px" }],
       },

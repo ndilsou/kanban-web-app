@@ -1,5 +1,6 @@
-import { Popover, Switch, Transition } from "@headlessui/react";
+import { Menu, Popover, Switch, Transition } from "@headlessui/react";
 import clsx from "clsx";
+import Link from "next/link";
 import { FC, Fragment, useContext, useEffect, useState } from "react";
 import { ThemeContext } from "./contexts";
 import {
@@ -7,6 +8,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   DarkThemeIcon,
+  HideSidebarIcon,
   LightThemeIcon,
   LogoDarkIcon,
   LogoLightIcon,
@@ -14,20 +16,27 @@ import {
 } from "./icons";
 
 interface NavigationProps {
-  boards: string[];
+  boards: BoardListItem[];
   activeBoard: string;
   openMenu?: boolean;
+  onHideSidebarClick?: () => void;
 }
 
 const Navigation: FC<NavigationProps> = ({
   activeBoard,
   boards,
   openMenu = false,
+  onHideSidebarClick,
 }) => {
   return (
     <div className="flex h-16 flex-row items-center justify-between border-lines-light bg-white px-4 dark:border-lines-dark dark:bg-dark-grey md:h-20 md:border-b md:pr-6 md:pl-0 lg:h-24 lg:pr-8">
       <div className="flex h-full flex-row items-center">
-        <MainMenu activeBoard={activeBoard} boards={boards} open={openMenu} />
+        <MainMenu
+          activeBoard={activeBoard}
+          boards={boards}
+          open={openMenu}
+          onHideSidebarClick={onHideSidebarClick}
+        />
         <div className="ml-4 md:ml-6 lg:ml-8">
           <h2 className="hidden text-xl font-bold leading-6 dark:text-white md:block lg:text-2xl">
             {activeBoard}
@@ -49,12 +58,12 @@ export default Navigation;
 
 interface BoardListboxProps {
   activeBoard: string;
-  boards: string[];
+  boards: BoardListItem[];
 }
 
 const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
   <Popover className="relative">
-    {({ open }) => (
+    {({ open, close }) => (
       <>
         <Popover.Button className="flex flex-row items-center">
           <h2 className="text-lg font-bold leading-6 dark:text-white">
@@ -76,7 +85,13 @@ const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
         >
           <Popover.Panel className="fixed top-20 left-14 z-10  min-h-fit w-64 rounded-lg bg-white py-4 shadow-lg dark:bg-dark-grey">
             <div className="pr-6">
-              <BoardList boards={boards} activeBoard={activeBoard} />
+              <BoardList
+                boards={boards}
+                activeBoard={activeBoard}
+                onClick={() => {
+                  close();
+                }}
+              />
             </div>
             <div className="mt-4 px-4">
               <ThemeToggle />
@@ -88,31 +103,44 @@ const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
   </Popover>
 );
 
+type BoardListItem = {
+  name: string;
+  id: number;
+};
+
 interface BoardListProps {
   activeBoard: string;
-  boards: string[];
+  boards: BoardListItem[];
+  onClick?: () => void;
 }
 
-const BoardList: FC<BoardListProps> = ({ activeBoard: active, boards }) => {
+const BoardList: FC<BoardListProps> = ({
+  activeBoard: active,
+  boards,
+  onClick,
+}) => {
   return (
     <div className="flex flex-col">
       <h3 className="pl-6 text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
         All Boards ({boards.length})
       </h3>
       <ul className="mt-4 pl-6 text-md [&>li]:flex [&>li]:py-4 [&>li]:font-bold">
-        {boards.map((name) => (
+        {boards.map(({ name, id }) => (
           <li
             key={name}
             className={clsx(
+              "-ml-6 rounded-r-full pl-6",
               name === active
-                ? "-ml-6 rounded-r-full bg-main-purple pl-6 text-white"
-                : "text-medium-grey"
+                ? " bg-main-purple text-white"
+                : "text-medium-grey hover:bg-main-purple/10 hover:text-main-purple"
             )}
           >
-            <button className="flex">
-              <BoardIcon className="h4 w-4 fill-current" />
-              <h4 className="ml-3">{name}</h4>
-            </button>
+            <Link href={`/boards/${id}`}>
+              <a className="flex" onClick={onClick}>
+                <BoardIcon className="h4 w-4 fill-current" />
+                <h4 className="ml-3">{name}</h4>
+              </a>
+            </Link>
           </li>
         ))}
         <li className="text-main-purple">
@@ -157,22 +185,28 @@ interface NewTaskButtonProps {
 
 const NewTaskButton: FC<NewTaskButtonProps> = ({ disabled = false }) => {
   return (
-    <button
-      disabled={disabled}
-      className="flex h-8 w-12 items-center justify-center rounded-3xl bg-main-purple disabled:bg-main-purple/25 md:h-12 md:w-40"
-    >
-      <svg
-        className="h-3 w-3 fill-current text-white md:hidden"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 12 12"
+    <Menu>
+      <Menu.Button
+        disabled={disabled}
+        className="flex h-8 w-12 items-center justify-center rounded-3xl bg-main-purple hover:bg-hover-main-purple disabled:bg-main-purple/25 md:h-12 md:w-40"
       >
-        <path d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z" />
-      </svg>
+        <svg
+          className="h-3 w-3 fill-current text-white md:hidden"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 12 12"
+        >
+          <path d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z" />
+        </svg>
 
-      <h4 className="hidden text-md font-bold text-white md:block">
-        + Add New Task
-      </h4>
-    </button>
+        <h4 className="hidden text-md font-bold text-white md:block">
+          + Add New Task
+        </h4>
+      </Menu.Button>
+      <Menu.Items>
+        <Menu.Item></Menu.Item>
+        <Menu.Item></Menu.Item>
+      </Menu.Items>
+    </Menu>
   );
 };
 
@@ -196,11 +230,17 @@ const BoardSettingsButton: FC = () => {
 
 interface MainLogoProps {
   activeBoard: string;
-  boards: string[];
+  boards: BoardListItem[];
   open?: boolean;
+  onHideSidebarClick?: () => void;
 }
 
-const MainMenu: FC<MainLogoProps> = ({ activeBoard, boards, open = false }) => {
+const MainMenu: FC<MainLogoProps> = ({
+  activeBoard: activeBoard,
+  boards,
+  open = false,
+  onHideSidebarClick,
+}) => {
   const { theme } = useContext(ThemeContext);
   return (
     <>
@@ -229,9 +269,16 @@ const MainMenu: FC<MainLogoProps> = ({ activeBoard, boards, open = false }) => {
           <div className="pr-5">
             <BoardList activeBoard={activeBoard} boards={boards} />
           </div>
-          <div className="fixed top-[650px] w-full px-3 lg:px-6">
+          <div className="fixed top-[786px] w-full px-3 lg:top-[792px] lg:px-6">
             <ThemeToggle />
           </div>
+          <button
+            className="fixed top-[848px] left-0 flex h-12 w-72 items-center align-middle text-medium-grey"
+            onClick={onHideSidebarClick}
+          >
+            <HideSidebarIcon className="h-3 w-4 fill-current md:ml-6 lg:ml-8" />
+            <span className="ml-4 text-md font-bold">Hide Sidebar</span>
+          </button>
         </div>
       </aside>
     </>
