@@ -132,7 +132,7 @@ const BoardList: FC<BoardListProps> = ({
               "-ml-6 rounded-r-full pl-6",
               name === active
                 ? " bg-main-purple text-white"
-                : "text-medium-grey hover:bg-main-purple/10 hover:text-main-purple"
+                : "dark:hover-white text-medium-grey hover:bg-main-purple/10 hover:text-main-purple dark:hover:bg-white"
             )}
           >
             <Link href={`/boards/${id}`}>
@@ -185,46 +185,50 @@ interface NewTaskButtonProps {
 
 const NewTaskButton: FC<NewTaskButtonProps> = ({ disabled = false }) => {
   return (
-    <Menu>
-      <Menu.Button
-        disabled={disabled}
-        className="flex h-8 w-12 items-center justify-center rounded-3xl bg-main-purple hover:bg-hover-main-purple disabled:bg-main-purple/25 md:h-12 md:w-40"
+    <button
+      disabled={disabled}
+      className="flex h-8 w-12 items-center justify-center rounded-3xl bg-main-purple hover:bg-hover-main-purple disabled:bg-main-purple/25 md:h-12 md:w-40"
+    >
+      <svg
+        className="h-3 w-3 fill-current text-white md:hidden"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 12 12"
       >
-        <svg
-          className="h-3 w-3 fill-current text-white md:hidden"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 12 12"
-        >
-          <path d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z" />
-        </svg>
+        <path d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z" />
+      </svg>
 
-        <h4 className="hidden text-md font-bold text-white md:block">
-          + Add New Task
-        </h4>
-      </Menu.Button>
-      <Menu.Items>
-        <Menu.Item></Menu.Item>
-        <Menu.Item></Menu.Item>
-      </Menu.Items>
-    </Menu>
+      <h4 className="hidden text-md font-bold text-white md:block">
+        + Add New Task
+      </h4>
+    </button>
   );
 };
 
 const BoardSettingsButton: FC = () => {
   return (
-    <button className="ml-4 flex items-center justify-center md:ml-6">
-      <svg
-        className="h-4 w-1 fill-current text-medium-grey md:h-5 md:w-1.5"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 5 20"
-      >
-        <g fillRule="evenodd">
-          <circle cx="2.308" cy="2.308" r="2.308" />
-          <circle cx="2.308" cy="10" r="2.308" />
-          <circle cx="2.308" cy="17.692" r="2.308" />
-        </g>
-      </svg>
-    </button>
+    <Menu as="div" className="relative">
+      <Menu.Button className="ml-4 flex items-center justify-center md:ml-6">
+        <svg
+          className="h-4 w-1 fill-current text-medium-grey md:h-5 md:w-1.5"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 5 20"
+        >
+          <g fillRule="evenodd">
+            <circle cx="2.308" cy="2.308" r="2.308" />
+            <circle cx="2.308" cy="10" r="2.308" />
+            <circle cx="2.308" cy="17.692" r="2.308" />
+          </g>
+        </svg>
+      </Menu.Button>
+      <Menu.Items className="absolute right-0 top-12 flex h-24 w-48 flex-col items-start justify-around gap-4 rounded-lg bg-white p-4 text-xs font-medium shadow-md dark:bg-very-dark-grey dark:shadow-black/20">
+        <Menu.Item as="button" className="text-medium-grey">
+          Edit Board
+        </Menu.Item>
+        <Menu.Item as="button" className="text-red">
+          Delete Board
+        </Menu.Item>
+      </Menu.Items>
+    </Menu>
   );
 };
 
@@ -273,7 +277,7 @@ const MainMenu: FC<MainLogoProps> = ({
             <ThemeToggle />
           </div>
           <button
-            className="fixed top-[848px] left-0 flex h-12 w-72 items-center align-middle text-medium-grey"
+            className="fixed top-[848px] left-0  flex h-12 w-72 items-center rounded-r-full align-middle text-medium-grey hover:bg-main-purple/10  hover:text-main-purple dark:hover:bg-white"
             onClick={onHideSidebarClick}
           >
             <HideSidebarIcon className="h-3 w-4 fill-current md:ml-6 lg:ml-8" />
