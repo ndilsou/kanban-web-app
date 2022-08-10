@@ -10,8 +10,8 @@ const Board: FC<BoardProps> = ({ columns }) => {
   return (
     <>
       {columns.length > 0 ? (
-        <div className="h-full w-full overflow-scroll">
-          <div className="flex  min-h-max w-fit justify-center gap-6 px-4 pt-6 pb-12 md:px-6">
+        <div className="inline h-full w-full overflow-scroll">
+          <div className="flex min-h-max w-fit justify-center gap-6 px-4 pt-6 pb-12 md:px-6">
             {columns.map((col) => (
               <Column key={col.name} data={col} />
             ))}
