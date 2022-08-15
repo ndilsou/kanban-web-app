@@ -4,9 +4,9 @@ import { z } from "zod";
 import { Board } from "@kanban/domain";
 import rawData from "./data.json";
 
-export function getDataSync(): Board[] {
+export function getDataSync(): Map<number, Board> {
   const { boards } = BoardDataSchema.parse(rawData);
-  return boards;
+  return new Map(boards.map((b) => [b.id, b]));
 }
 
 const TaskSchema = z.object({

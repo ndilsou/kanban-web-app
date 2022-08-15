@@ -16,18 +16,17 @@ interface PageProps {
 }
 
 const Page: NextPage<PageProps> = ({ id }) => {
-  const query = trpc.useQuery(["boards.populate", { id }]);
+  const getQuery = trpc.useQuery(["boards.get", { id }]);
   const [menuIsOpen, setMenuIsOpen] = useState(false);
 
-  if (!query.data) {
+  if (!getQuery.data) {
     return <div>Loading...</div>;
   }
   return (
     <div className="relative h-full w-full  bg-light-grey dark:bg-very-dark-grey">
       <header className="h-fit bg-white dark:bg-dark-grey">
         <Navigation
-          activeBoard={query.data.board.name}
-          boards={query.data.boardList}
+          activeBoard={getQuery.data}
           openMenu={menuIsOpen}
           onHideSidebarClick={() => {
             setMenuIsOpen(false);
@@ -49,13 +48,12 @@ const Page: NextPage<PageProps> = ({ id }) => {
         className={clsx(
           {
             "w-[calc(100%-18rem)] translate-x-72 lg:w-[calc(100%-18.75rem)] lg:translate-x-75":
-              // "translate-x-72 lg:translate-x-75":
               menuIsOpen,
           },
           " h-full overflow-hidden transition-[width,transform] delay-150 duration-500 ease-in-out"
         )}
       >
-        <Board columns={query.data.board.columns} />
+        <Board columns={getQuery.data.columns} />
       </main>
     </div>
   );
@@ -74,7 +72,10 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async (
   });
   const rawId = z.string().parse(context.params?.id);
   const id = Number.parseInt(rawId);
-  await ssg.fetchQuery("boards.populate", { id });
+  await Promise.all([
+    ssg.fetchQuery("boards.get", { id }),
+    ssg.fetchQuery("boards.list"),
+  ]);
   return {
     props: {
       trpcState: ssg.dehydrate(),

@@ -6,6 +6,7 @@ import path from "path";
 import { TRPCError } from "@trpc/server";
 import { readFileSync } from "fs";
 import { getDataSync } from "@kanban/data";
+import { IterableElement } from "type-fest";
 
 const boards = getDataSync();
 
@@ -15,14 +16,18 @@ export const boardsRouter = createRouter()
       id: z.number(),
     }),
     async resolve({ input }) {
-      const board = boards.find((b) => b.id === input.id);
+      const board = boards.get(input.id);
       if (!board) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: `no Board with id ${input.id}`,
         });
       }
-      const boardList = boards.map((b) => ({ id: b.id, name: b.name }));
+
+      const boardList: { id: number; name: string }[] = [];
+      for (const b of boards.values()) {
+        boardList.push({ id: b.id, name: b.name });
+      }
       return { board, boardList };
     },
   })
@@ -31,7 +36,7 @@ export const boardsRouter = createRouter()
       id: z.number(),
     }),
     async resolve({ input }) {
-      const board = boards.find((b) => b.id === input.id);
+      const board = boards.get(input.id);
       if (!board) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -41,9 +46,43 @@ export const boardsRouter = createRouter()
       return board;
     },
   })
-  .query("listNames", {
+  .mutation("update", {
+    input: z.object({
+      id: z.number(),
+      name: z.string().optional(),
+      columns: z.array(z.object({ name: z.string() })),
+    }),
+    async resolve({ input }) {
+      const board = boards.get(input.id);
+      if (!board) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `no Board with id ${input.id}`,
+        });
+      }
+      const columns = input.columns.map((ic) => {
+        let column = board.columns.find((c) => c.name === ic.name);
+        if (!column) {
+          column = { name: ic.name, tasks: [] };
+        }
+        return column;
+      });
+
+      const newBoard: Board = {
+        id: board.id,
+        name: input.name || board.name,
+        columns,
+      };
+      boards.set(input.id, newBoard);
+      return board;
+    },
+  })
+  .query("list", {
     async resolve() {
-      const names = boards.map((b) => b.name);
-      return names;
+      const boardList: { id: number; name: string }[] = [];
+      for (const b of boards.values()) {
+        boardList.push({ id: b.id, name: b.name });
+      }
+      return boardList;
     },
   });
