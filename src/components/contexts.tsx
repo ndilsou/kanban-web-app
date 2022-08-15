@@ -14,7 +14,6 @@ export const ThemeContextProvider = (props: PropsWithChildren<{}>) => {
   };
 
   useEffect(() => {
-    console.log(`theme is ${theme}`);
     if (theme == "dark") {
       document.body.classList.add("dark");
     } else if (theme === "light") {

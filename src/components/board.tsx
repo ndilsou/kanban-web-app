@@ -45,7 +45,7 @@ const EmptyBoardWidget: FC = () => {
 const AddNewColumn: FC = () => {
   return (
     <button className="mt-10 h-[814px] w-72 rounded-md bg-lines-light dark:bg-inherit dark:bg-dark-gradient">
-      <span className="text-center text-2xl font-bold text-medium-grey">
+      <span className="text-center text-2xl font-bold text-medium-grey hover:text-main-purple">
         + New Column
       </span>
     </button>
@@ -92,114 +92,11 @@ const Card: FC<CardProps> = ({ task }) => {
   );
   const summary = `${completedCount} of ${task.subtasks.length} substacks`;
   return (
-    <button className="flex w-72 flex-col items-start justify-center rounded-lg bg-white px-4 py-6 text-left font-bold shadow-lg dark:bg-dark-grey">
-      <h5 className=" text-md  text-black dark:text-white">{task.title}</h5>
+    <button className="group flex w-72 flex-col items-start justify-center rounded-lg bg-white px-4 py-6 text-left font-bold shadow-lg dark:bg-dark-grey">
+      <h5 className=" text-md  text-black group-hover:text-main-purple dark:text-white">
+        {task.title}
+      </h5>
       <span className="mt-2 text-xs text-medium-grey">{summary}</span>
     </button>
-  );
-};
-
-interface ViewCardModalProps {
-  open: boolean;
-}
-
-const ViewCardModal: FC<ViewCardModalProps> = ({ open }) => {
-  return (
-    <Dialog className="relative z-50" open={open} onClose={() => {}}>
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-
-      <Dialog.Panel>
-        <Dialog.Title>Deactivate account</Dialog.Title>
-        <Dialog.Description>
-          This will permanently deactivate your account
-        </Dialog.Description>
-
-        <p>
-          Are you sure you want to deactivate your account? All of your data
-          will be permanently removed. This action cannot be undone.
-        </p>
-
-        <button onClick={() => {}}>Deactivate</button>
-        <button onClick={() => {}}>Cancel</button>
-      </Dialog.Panel>
-    </Dialog>
-  );
-};
-
-interface TaskModalProps {
-  open: boolean;
-}
-
-const TaskModal: FC<TaskModalProps> = ({ open }) => {
-  return (
-    <Dialog className="relative z-50" open={open} onClose={() => {}}>
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <Dialog.Panel>
-        <Dialog.Title>Deactivate account</Dialog.Title>
-        <Dialog.Description>
-          This will permanently deactivate your account
-        </Dialog.Description>
-
-        <p>
-          Are you sure you want to deactivate your account? All of your data
-          will be permanently removed. This action cannot be undone.
-        </p>
-
-        <button onClick={() => {}}>Deactivate</button>
-        <button onClick={() => {}}>Cancel</button>
-      </Dialog.Panel>
-    </Dialog>
-  );
-};
-
-interface BoardModalProps {
-  open: boolean;
-}
-
-const BoardModal: FC<BoardModalProps> = ({ open }) => {
-  return (
-    <Dialog className="relative z-50" open={open} onClose={() => {}}>
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <Dialog.Panel>
-        <Dialog.Title>Deactivate account</Dialog.Title>
-        <Dialog.Description>
-          This will permanently deactivate your account
-        </Dialog.Description>
-
-        <p>
-          Are you sure you want to deactivate your account? All of your data
-          will be permanently removed. This action cannot be undone.
-        </p>
-
-        <button onClick={() => {}}>Deactivate</button>
-        <button onClick={() => {}}>Cancel</button>
-      </Dialog.Panel>
-    </Dialog>
-  );
-};
-
-interface DeleteModalProps {
-  open: boolean;
-}
-
-const DeleteModal: FC<DeleteModalProps> = ({ open }) => {
-  return (
-    <Dialog className="relative z-50" open={open} onClose={() => {}}>
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <Dialog.Panel>
-        <Dialog.Title>Deactivate account</Dialog.Title>
-        <Dialog.Description>
-          This will permanently deactivate your account
-        </Dialog.Description>
-
-        <p>
-          Are you sure you want to deactivate your account? All of your data
-          will be permanently removed. This action cannot be undone.
-        </p>
-
-        <button onClick={() => {}}>Deactivate</button>
-        <button onClick={() => {}}>Cancel</button>
-      </Dialog.Panel>
-    </Dialog>
   );
 };

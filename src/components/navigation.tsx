@@ -2,6 +2,8 @@ import { Menu, Popover, Switch, Transition } from "@headlessui/react";
 import clsx from "clsx";
 import Link from "next/link";
 import { FC, Fragment, useContext, useEffect, useState } from "react";
+import { Board } from "../domain";
+import { trpc } from "../utils/trpc";
 import { ThemeContext } from "./contexts";
 import {
   BoardIcon,
@@ -14,43 +16,70 @@ import {
   LogoLightIcon,
   MobileLogo,
 } from "./icons";
+import { BoardMutationModal, DeleteModal } from "./modals";
 
 interface NavigationProps {
-  boards: BoardListItem[];
-  activeBoard: string;
+  activeBoard: Board;
   openMenu?: boolean;
   onHideSidebarClick?: () => void;
 }
 
 const Navigation: FC<NavigationProps> = ({
   activeBoard,
-  boards,
   openMenu = false,
   onHideSidebarClick,
 }) => {
+  const [modalIsVisible, setModalIsVisible] = useState(false);
+  const listQuery = trpc.useQuery(["boards.list"]);
+  const handleAddNewBoardClick = () => setModalIsVisible(true);
+
+  if (!listQuery.data) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="flex h-16 flex-row items-center justify-between border-lines-light bg-white px-4 dark:border-lines-dark dark:bg-dark-grey md:h-20 md:border-b md:pr-6 md:pl-0 lg:h-24 lg:pr-8">
-      <div className="flex h-full flex-row items-center">
-        <MainMenu
-          activeBoard={activeBoard}
-          boards={boards}
-          open={openMenu}
-          onHideSidebarClick={onHideSidebarClick}
-        />
-        <div className="ml-4 md:ml-6 lg:ml-8">
-          <h2 className="hidden text-xl font-bold leading-6 dark:text-white md:block lg:text-2xl">
-            {activeBoard}
-          </h2>
-          <div className="md:hidden">
-            <BoardListbox activeBoard={activeBoard} boards={boards} />
+    <>
+      <div className="flex h-16 flex-row items-center justify-between border-lines-light bg-white px-4 dark:border-lines-dark dark:bg-dark-grey md:h-20 md:border-b md:pr-6 md:pl-0 lg:h-24 lg:pr-8">
+        <div className="flex h-full flex-row items-center">
+          <MainMenu
+            activeBoard={activeBoard.name}
+            boards={listQuery.data}
+            open={openMenu}
+            onHideSidebarClick={onHideSidebarClick}
+            onAddNewBoardClick={handleAddNewBoardClick}
+          />
+          <div className="ml-4 md:ml-6 lg:ml-8">
+            <h2 className="hidden text-xl font-bold leading-6 dark:text-white md:block lg:text-2xl">
+              {activeBoard.name}
+            </h2>
+            <div className="md:hidden">
+              <BoardListbox
+                onAddNewBoardClick={handleAddNewBoardClick}
+                activeBoard={activeBoard.name}
+                boards={listQuery.data}
+              />
+            </div>
           </div>
         </div>
+        <div className="flex flex-row items-center justify-center">
+          <NewTaskButton />
+          <BoardSettingsButton board={activeBoard} />
+        </div>
       </div>
-      <div className="flex flex-row items-center justify-center">
-        <NewTaskButton />
-        <BoardSettingsButton />
-      </div>
-    </div>
+      <BoardMutationModal
+        open={modalIsVisible}
+        title="Add New Board"
+        name=""
+        columns={["Todo", "Doing"]}
+        submitButtonLabel="Create New Board"
+        onSubmit={(data) => {
+          console.log(data);
+        }}
+        onClose={() => {
+          setModalIsVisible(false);
+        }}
+      />
+    </>
   );
 };
 
@@ -59,9 +88,14 @@ export default Navigation;
 interface BoardListboxProps {
   activeBoard: string;
   boards: BoardListItem[];
+  onAddNewBoardClick: () => void;
 }
 
-const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
+const BoardListbox: FC<BoardListboxProps> = ({
+  activeBoard,
+  boards,
+  onAddNewBoardClick,
+}) => (
   <Popover className="relative">
     {({ open, close }) => (
       <>
@@ -88,6 +122,7 @@ const BoardListbox: FC<BoardListboxProps> = ({ activeBoard, boards }) => (
               <BoardList
                 boards={boards}
                 activeBoard={activeBoard}
+                onAddNewBoardClick={onAddNewBoardClick}
                 onClick={() => {
                   close();
                 }}
@@ -112,43 +147,49 @@ interface BoardListProps {
   activeBoard: string;
   boards: BoardListItem[];
   onClick?: () => void;
+  onAddNewBoardClick?: () => void;
 }
 
 const BoardList: FC<BoardListProps> = ({
   activeBoard: active,
   boards,
+  onAddNewBoardClick,
   onClick,
 }) => {
   return (
-    <div className="flex flex-col">
-      <h3 className="pl-6 text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
-        All Boards ({boards.length})
-      </h3>
-      <ul className="mt-4 pl-6 text-md [&>li]:flex [&>li]:py-4 [&>li]:font-bold">
-        {boards.map(({ name, id }) => (
-          <li
-            key={name}
-            className={clsx(
-              "-ml-6 rounded-r-full pl-6",
-              name === active
-                ? " bg-main-purple text-white"
-                : "dark:hover-white text-medium-grey hover:bg-main-purple/10 hover:text-main-purple dark:hover:bg-white"
-            )}
-          >
-            <Link href={`/boards/${id}`}>
-              <a className="flex" onClick={onClick}>
-                <BoardIcon className="h4 w-4 fill-current" />
-                <h4 className="ml-3">{name}</h4>
-              </a>
-            </Link>
+    <>
+      <div className="flex flex-col">
+        <h3 className="pl-6 text-xs font-bold uppercase tracking-[2.4px] text-medium-grey">
+          All Boards ({boards.length})
+        </h3>
+        <ul className="mt-4 pl-6 text-md [&>li]:flex [&>li]:py-4 [&>li]:font-bold">
+          {boards.map(({ name, id }) => (
+            <li
+              key={name}
+              className={clsx(
+                "-ml-6 rounded-r-full pl-6",
+                name === active
+                  ? " bg-main-purple text-white"
+                  : "dark:hover-white text-medium-grey hover:bg-main-purple/10 hover:text-main-purple dark:hover:bg-white"
+              )}
+            >
+              <Link href={`/boards/${id}`}>
+                <a className="flex" onClick={onClick}>
+                  <BoardIcon className="h4 w-4 fill-current" />
+                  <h4 className="ml-3">{name}</h4>
+                </a>
+              </Link>
+            </li>
+          ))}
+          <li className="text-main-purple">
+            <button className="flex items-center" onClick={onAddNewBoardClick}>
+              <BoardIcon className="h4 w-4 fill-current" />
+              <h4 className="ml-3">+ Create New Board</h4>
+            </button>
           </li>
-        ))}
-        <li className="text-main-purple">
-          <BoardIcon className="h4 w-4 fill-current" />
-          <h4 className="ml-3">+ Create New Board</h4>
-        </li>
-      </ul>
-    </div>
+        </ul>
+      </div>
+    </>
   );
 };
 
@@ -204,31 +245,75 @@ const NewTaskButton: FC<NewTaskButtonProps> = ({ disabled = false }) => {
   );
 };
 
-const BoardSettingsButton: FC = () => {
+interface BoardSettingsButtonProps {
+  board: Board;
+}
+
+const BoardSettingsButton: FC<BoardSettingsButtonProps> = ({ board }) => {
+  const [editModalIsOpen, setEditModalOpen] = useState(false);
+  const [deleteModalIsOpen, setDeleteModalOpen] = useState(false);
+
   return (
-    <Menu as="div" className="relative">
-      <Menu.Button className="ml-4 flex items-center justify-center md:ml-6">
-        <svg
-          className="h-4 w-1 fill-current text-medium-grey md:h-5 md:w-1.5"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 5 20"
-        >
-          <g fillRule="evenodd">
-            <circle cx="2.308" cy="2.308" r="2.308" />
-            <circle cx="2.308" cy="10" r="2.308" />
-            <circle cx="2.308" cy="17.692" r="2.308" />
-          </g>
-        </svg>
-      </Menu.Button>
-      <Menu.Items className="absolute right-0 top-12 flex h-24 w-48 flex-col items-start justify-around gap-4 rounded-lg bg-white p-4 text-xs font-medium shadow-md dark:bg-very-dark-grey dark:shadow-black/20">
-        <Menu.Item as="button" className="text-medium-grey">
-          Edit Board
-        </Menu.Item>
-        <Menu.Item as="button" className="text-red">
-          Delete Board
-        </Menu.Item>
-      </Menu.Items>
-    </Menu>
+    <>
+      <Menu as="div" className="relative">
+        <Menu.Button className="ml-4 flex items-center justify-center md:ml-6">
+          <svg
+            className="h-4 w-1 fill-current text-medium-grey md:h-5 md:w-1.5"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 5 20"
+          >
+            <g fillRule="evenodd">
+              <circle cx="2.308" cy="2.308" r="2.308" />
+              <circle cx="2.308" cy="10" r="2.308" />
+              <circle cx="2.308" cy="17.692" r="2.308" />
+            </g>
+          </svg>
+        </Menu.Button>
+        <Menu.Items className="absolute right-0 top-12 flex h-24 w-48 flex-col items-start justify-around gap-4 rounded-lg bg-white p-4 text-xs font-medium shadow-md dark:bg-very-dark-grey dark:shadow-black/20">
+          <Menu.Item
+            as="button"
+            className="p-2 text-medium-grey"
+            onClick={() => {
+              setEditModalOpen(true);
+            }}
+          >
+            Edit Board
+          </Menu.Item>
+          <Menu.Item
+            as="button"
+            className="p-2 text-red"
+            onClick={() => {
+              setDeleteModalOpen(true);
+            }}
+          >
+            Delete Board
+          </Menu.Item>
+        </Menu.Items>
+      </Menu>
+      <BoardMutationModal
+        open={editModalIsOpen}
+        title="Edit Board"
+        name={board.name}
+        columns={board.columns.map((c) => c.name)}
+        submitButtonLabel="Save Changes"
+        onSubmit={(data) => {
+          console.log(data);
+        }}
+        onClose={() => {
+          setEditModalOpen(false);
+        }}
+      />
+      <DeleteModal
+        title="Delete this task?"
+        open={deleteModalIsOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+        }}
+      >
+        Are you sure you want to delete the &lsquo;Build settings UI&rsquo; task
+        and its subtasks? This action cannot be reversed.
+      </DeleteModal>
+    </>
   );
 };
 
@@ -237,6 +322,7 @@ interface MainLogoProps {
   boards: BoardListItem[];
   open?: boolean;
   onHideSidebarClick?: () => void;
+  onAddNewBoardClick?: () => void;
 }
 
 const MainMenu: FC<MainLogoProps> = ({
@@ -244,6 +330,7 @@ const MainMenu: FC<MainLogoProps> = ({
   boards,
   open = false,
   onHideSidebarClick,
+  onAddNewBoardClick,
 }) => {
   const { theme } = useContext(ThemeContext);
   return (
@@ -271,7 +358,11 @@ const MainMenu: FC<MainLogoProps> = ({
       >
         <div className="relative mt-8 flex h-full flex-col">
           <div className="pr-5">
-            <BoardList activeBoard={activeBoard} boards={boards} />
+            <BoardList
+              activeBoard={activeBoard}
+              boards={boards}
+              onAddNewBoardClick={onAddNewBoardClick}
+            />
           </div>
           <div className="fixed top-[786px] w-full px-3 lg:top-[792px] lg:px-6">
             <ThemeToggle />
