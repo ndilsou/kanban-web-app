@@ -77,7 +77,11 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<TaskMutationFormValues>({});
+  } = useForm<TaskMutationFormValues>({
+    defaultValues: {
+      subtasks: [{ name: "Be wowed!" }, { name: "be wawwed!" }],
+    },
+  });
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -95,7 +99,10 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
           <Dialog.Title className="text-start text-lg font-bold text-black dark:text-white">
             {title}
           </Dialog.Title>
-          <form className="mt-6 flex flex-col">
+          <form
+            className="mt-6 flex flex-col"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <div>
               <label
                 htmlFor="task-title-id"
@@ -109,7 +116,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                 className="form-input mt-2 h-10 w-full items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
               />
             </div>
-            <div>
+            <div className="mt-6">
               <label
                 htmlFor="task-description-id"
                 className="text-left font-bold text-medium-grey"
@@ -125,8 +132,8 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                 className="form-textarea mt-2 h-28 w-full resize-none items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
               />
             </div>
-            <div>
-              <label className="mt-6 text-left font-bold text-medium-grey">
+            <div className="mt-6">
+              <label className="text-left font-bold text-medium-grey">
                 Subtasks
               </label>
               <ul className="mt-2 flex flex-col gap-3">
@@ -143,7 +150,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                 ))}
               </ul>
               <button
-                className="flex h-10 w-full items-center justify-center rounded-2.5xl bg-[#635FC7]/10 text-center text-sm font-bold text-main-purple hover:bg-[#635FC7]/50 dark:bg-white dark:text-main-purple"
+                className="mt-3 flex h-10 w-full items-center justify-center rounded-2.5xl bg-[#635FC7]/10 text-center text-sm font-bold text-main-purple hover:bg-[#635FC7]/50 dark:bg-white dark:text-main-purple"
                 onClick={() => {
                   append({ name: "" });
                 }}
@@ -151,14 +158,14 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                 + Add New Subtask
               </button>
             </div>
-            <div>
+            <div className="mt-6">
               <label
                 htmlFor="task-status-id"
                 className="text-left font-bold text-medium-grey"
               >
                 Status
               </label>
-              <input
+              <select
                 id="task-status-id"
                 placeholder="eg. Take coffee break"
                 className="form-input mt-2 h-10 w-full items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"

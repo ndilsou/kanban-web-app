@@ -16,7 +16,7 @@ import {
   LogoLightIcon,
   MobileLogo,
 } from "./icons";
-import { BoardMutationModal, DeleteModal } from "./modals";
+import { BoardMutationModal, DeleteModal, TaskMutationModal } from "./modals";
 
 interface NavigationProps {
   activeBoard: Board;
@@ -225,23 +225,34 @@ interface NewTaskButtonProps {
 }
 
 const NewTaskButton: FC<NewTaskButtonProps> = ({ disabled = false }) => {
+  const [modalIsVisible, setModalIsVisible] = useState(false);
   return (
-    <button
-      disabled={disabled}
-      className="flex h-8 w-12 items-center justify-center rounded-3xl bg-main-purple hover:bg-hover-main-purple disabled:bg-main-purple/25 md:h-12 md:w-40"
-    >
-      <svg
-        className="h-3 w-3 fill-current text-white md:hidden"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 12 12"
+    <>
+      <button
+        disabled={disabled}
+        className="flex h-8 w-12 items-center justify-center rounded-3xl bg-main-purple hover:bg-hover-main-purple disabled:bg-main-purple/25 md:h-12 md:w-40"
+        onClick={() => setModalIsVisible(true)}
       >
-        <path d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z" />
-      </svg>
+        <svg
+          className="h-3 w-3 fill-current text-white md:hidden"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 12 12"
+        >
+          <path d="M7.368 12V7.344H12V4.632H7.368V0H4.656v4.632H0v2.712h4.656V12z" />
+        </svg>
 
-      <h4 className="hidden text-md font-bold text-white md:block">
-        + Add New Task
-      </h4>
-    </button>
+        <h4 className="hidden text-md font-bold text-white md:block">
+          + Add New Task
+        </h4>
+      </button>
+      <TaskMutationModal
+        onSubmit={(data) => console.log(data)}
+        title="Add New Task"
+        submitButtonLabel="Add Task"
+        open={modalIsVisible}
+        onClose={() => setModalIsVisible(false)}
+      />
+    </>
   );
 };
 
