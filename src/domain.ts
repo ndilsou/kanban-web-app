@@ -22,3 +22,7 @@ export interface Board {
   name: string;
   columns: Column[];
 }
+
+export function getTaskCompletedCount(task: Task): number {
+  return task.subtasks.reduce((sum, st) => sum + (st.isCompleted ? 1 : 0), 0);
+}
