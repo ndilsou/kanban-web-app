@@ -41,7 +41,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     formState: { errors },
   } = useForm<TaskMutationFormValues>({
     defaultValues: {
-      subtasks: [{ name: "Be wowed!" }, { name: "be wawwed!" }],
+      subtasks: [{ name: "" }, { name: "" }],
     },
   });
 
@@ -85,13 +85,10 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
               >
                 Description
               </label>
-              <input
+              <textarea
                 id="task-description-id"
-                type="textarea"
-                placeholder={`e.g. It's always good to take a break.
-                 This 15 minute break will 
-                  recharge the batteries a little.`}
-                className="form-textarea mt-2 h-28 w-full resize-none items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
+                placeholder={`e.g. It's always good to take a break. This 15 minute break will recharge the batteries a little.`}
+                className=" form-textarea mt-2 h-28 w-full resize-y rounded-md border border-[#828fa3]/25 px-4 py-2 text-justify text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
               />
             </div>
             <div className="mt-6">
