@@ -15,6 +15,7 @@ function defineNextConfig(config) {
 export default defineNextConfig({
   reactStrictMode: true,
   experimental: {
+    esmExternals: true,
     images: {
       allowFutureImage: true,
     },

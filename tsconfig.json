@@ -1,7 +1,14 @@
 {
+  "ts-node": {
+    "esm": true
+  },
   "compilerOptions": {
     "target": "ES2015",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "downlevelIteration": true,
     "allowJs": true,
     "skipLibCheck": true,
@@ -18,8 +25,12 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "@kanban/*": ["src/*"],
-      "@assets/*": ["public/assets/*"]
+      "@kanban/*": [
+        "src/*"
+      ],
+      "@assets/*": [
+        "public/assets/*"
+      ]
     }
   },
   "include": [
@@ -27,7 +38,11 @@
     "next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js"
+    "**/*.js",
+    "**/*.cjs",
+    "**/*.mjs",
   ],
-  "exclude": ["node_modules"]
+"exclude": [
+  "node_modules"
+]
 }
