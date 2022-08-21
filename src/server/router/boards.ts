@@ -1,42 +1,25 @@
-import { createRouter } from "./context";
-import { z } from "zod";
-import { Board } from "@kanban/domain";
-import { readFile } from "fs/promises";
-import path from "path";
-import { TRPCError } from "@trpc/server";
-import { readFileSync } from "fs";
 import { getDataSync } from "@kanban/data";
-import { IterableElement } from "type-fest";
+import { Board } from "@kanban/domain";
+import { PrismaClient } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { createRouter } from "./context";
 
 const boards = getDataSync();
+const prisma = new PrismaClient();
 
 export const boardsRouter = createRouter()
-  .query("populate", {
-    input: z.object({
-      id: z.number(),
-    }),
-    async resolve({ input }) {
-      const board = boards.get(input.id);
-      if (!board) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `no Board with id ${input.id}`,
-        });
-      }
-
-      const boardList: { id: number; name: string }[] = [];
-      for (const b of boards.values()) {
-        boardList.push({ id: b.id, name: b.name });
-      }
-      return { board, boardList };
-    },
-  })
   .query("get", {
     input: z.object({
       id: z.number(),
     }),
     async resolve({ input }) {
-      const board = boards.get(input.id);
+      const board = await prisma.board.findUnique({
+        where: { id: input.id },
+        include: {
+          columns: { include: { tasks: { include: { subtasks: true } } } },
+        },
+      });
       if (!board) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -79,10 +62,9 @@ export const boardsRouter = createRouter()
   })
   .query("list", {
     async resolve() {
-      const boardList: { id: number; name: string }[] = [];
-      for (const b of boards.values()) {
-        boardList.push({ id: b.id, name: b.name });
-      }
-      return boardList;
+      const boards = await prisma.board.findMany({
+        select: { id: true, name: true },
+      });
+      return boards;
     },
   });

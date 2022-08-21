@@ -10,6 +10,7 @@ export function getDataSync(): Map<number, Board> {
 }
 
 const TaskSchema = z.object({
+  id: z.number(),
   title: z.string().min(1),
   description: z.string(),
   status: z.string(),
@@ -19,6 +20,7 @@ const TaskSchema = z.object({
 });
 
 const ColumnSchema = z.object({
+  id: z.number(),
   name: z.string().min(1),
   tasks: z.array(TaskSchema),
 });
