@@ -1,19 +1,31 @@
 import { Dialog } from "@headlessui/react";
-import { FC } from "react";
-import { Column as ColumnData, Task } from "@kanban/domain";
+import { FC, useCallback, useState } from "react";
+import {
+  Column as ColumnData,
+  getTaskCompletedCount,
+  Task,
+} from "@kanban/domain";
+import { ViewCardModal } from "./modals";
 
 export interface BoardProps {
   columns: ColumnData[];
 }
 
 const Board: FC<BoardProps> = ({ columns }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeTask, setActiveTask] = useState<Task>();
+  function handleCardClick(task: Task) {
+    console.log(task);
+    setActiveTask(task);
+    setIsVisible(true);
+  }
   return (
     <>
       {columns.length > 0 ? (
         <div className="inline h-full w-full overflow-scroll">
           <div className="flex min-h-max w-fit justify-center gap-6 px-4 pt-6 pb-12 md:px-6">
             {columns.map((col) => (
-              <Column key={col.name} data={col} />
+              <Column key={col.name} data={col} onCardClick={handleCardClick} />
             ))}
             <AddNewColumn />
           </div>
@@ -23,6 +35,11 @@ const Board: FC<BoardProps> = ({ columns }) => {
           <EmptyBoardWidget />
         </div>
       )}
+      <ViewCardModal
+        open={isVisible}
+        task={activeTask}
+        onClose={() => setIsVisible(false)}
+      />
     </>
   );
 };
@@ -54,10 +71,11 @@ const AddNewColumn: FC = () => {
 
 interface ColumnProps {
   data: ColumnData;
+  onCardClick?: (task: Task) => void;
 }
 
 /** Column is a Kanban Board column containing cards */
-const Column: FC<ColumnProps> = ({ data }) => {
+const Column: FC<ColumnProps> = ({ data, onCardClick }) => {
   return (
     <div className="flex h-max w-72 flex-col">
       <div className="flex items-center justify-start">
@@ -74,7 +92,7 @@ const Column: FC<ColumnProps> = ({ data }) => {
       </div>
       <div className="mt-5 grid h-fit grid-cols-1 gap-5">
         {data.tasks.map((task) => (
-          <Card key={task.title} task={task} />
+          <Card key={task.title} task={task} onClick={onCardClick} />
         ))}
       </div>
     </div>
@@ -83,16 +101,22 @@ const Column: FC<ColumnProps> = ({ data }) => {
 
 interface CardProps {
   task: Task;
+  onClick?: (task: Task) => void;
 }
 
-const Card: FC<CardProps> = ({ task }) => {
-  const completedCount = task.subtasks.reduce(
-    (sum, st) => sum + (st.isCompleted ? 1 : 0),
-    0
-  );
+const Card: FC<CardProps> = ({ task, onClick }) => {
+  const completedCount = getTaskCompletedCount(task);
   const summary = `${completedCount} of ${task.subtasks.length} substacks`;
+  function handleClick() {
+    if (onClick) {
+      onClick(task);
+    }
+  }
   return (
-    <button className="group flex w-72 flex-col items-start justify-center rounded-lg bg-white px-4 py-6 text-left font-bold shadow-lg dark:bg-dark-grey">
+    <button
+      className="group flex w-72 flex-col items-start justify-center rounded-lg bg-white px-4 py-6 text-left font-bold shadow-lg dark:bg-dark-grey"
+      onClick={handleClick}
+    >
       <h5 className=" text-md  text-black group-hover:text-main-purple dark:text-white">
         {task.title}
       </h5>
@@ -100,3 +124,4 @@ const Card: FC<CardProps> = ({ task }) => {
     </button>
   );
 };
+
