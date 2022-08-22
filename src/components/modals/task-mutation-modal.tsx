@@ -1,12 +1,15 @@
 import { Dialog } from "@headlessui/react";
 import { RemovableTextInput } from "@kanban/components/modals/removable-text-input";
-import { FC } from "react";
+import { FC, useMemo, useEffect } from "react";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+import { Task } from "@kanban/domain";
 
 export interface TaskMutationModalProps {
   title: string;
   open: boolean;
   submitButtonLabel: string;
+  task?: Task;
+  statuses: { id: number; name: string }[];
   onClose: () => void;
   onSubmit: SubmitHandler<TaskMutationFormValues>;
 }
@@ -15,23 +18,30 @@ export type TaskMutationFormValues = {
   title: string;
   description: string;
   subtasks: { name: string }[];
-  status: string;
+  columnId: number;
 };
 
 export const TaskMutationModal: FC<TaskMutationModalProps> = ({
+  task,
+  statuses,
   open,
   title,
   submitButtonLabel,
   onClose,
   onSubmit,
 }) => {
-  //   const defaultValues = useMemo(
-  //     () => ({
-  //       name,
-  //       columns: columns.map((name) => ({ name })),
-  //     }),
-  //     [name, columns]
-  //   );
+  const defaultValues = useMemo(
+    () => ({
+      title: task?.title,
+      description: task?.description,
+      columnId: task?.columnId,
+      subtasks: task?.subtasks.map(({ title }) => ({ name: title })) ?? [
+        { name: "" },
+        { name: "" },
+      ],
+    }),
+    [task]
+  );
 
   const {
     control,
@@ -40,9 +50,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     reset,
     formState: { errors },
   } = useForm<TaskMutationFormValues>({
-    defaultValues: {
-      subtasks: [{ name: "" }, { name: "" }],
-    },
+    defaultValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -50,9 +58,9 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     name: "subtasks",
   });
 
-  //   useEffect(() => {
-  //     reset(defaultValues);
-  //   }, [defaultValues, reset]);
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
   return (
     <Dialog className="relative z-40" open={open} onClose={onClose}>
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
@@ -75,6 +83,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
               <input
                 id="task-title-id"
                 placeholder="eg. Take coffee break"
+                {...register("title", { required: true, minLength: 1 })}
                 className="form-input mt-2 h-10 w-full items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
               />
             </div>
@@ -88,6 +97,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
               <textarea
                 id="task-description-id"
                 placeholder={`e.g. It's always good to take a break. This 15 minute break will recharge the batteries a little.`}
+                {...register("description", { required: true, minLength: 1 })}
                 className=" form-textarea mt-2 h-28 w-full resize-y rounded-md border border-[#828fa3]/25 px-4 py-2 text-justify text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
               />
             </div>
@@ -126,9 +136,21 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
               </label>
               <select
                 id="task-status-id"
+                defaultValue={task?.columnId ?? 1}
                 placeholder="eg. Take coffee break"
+                {...register("columnId", {
+                  required: true,
+                  min: 1,
+                  valueAsNumber: true,
+                })}
                 className="form-input mt-2 h-10 w-full items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
-              />
+              >
+                {statuses.map((status) => (
+                  <option key={status.id} value={status.id}>
+                    {status.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <button className="mt-6 flex h-10 w-full items-center justify-center rounded-2.5xl bg-main-purple text-center text-sm font-bold text-white hover:bg-hover-main-purple">
               {submitButtonLabel}

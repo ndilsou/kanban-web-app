@@ -1,7 +1,7 @@
 import { Menu, Popover, Switch, Transition } from "@headlessui/react";
 import clsx from "clsx";
 import Link from "next/link";
-import { FC, Fragment, useContext, useEffect, useState } from "react";
+import { FC, Fragment, useContext, useState } from "react";
 import { Board } from "../domain";
 import { trpc } from "../utils/trpc";
 import { ThemeContext } from "./contexts";
@@ -14,9 +14,14 @@ import {
   LightThemeIcon,
   LogoDarkIcon,
   LogoLightIcon,
-  MobileLogo,
+  MobileLogo
 } from "./icons";
-import { BoardMutationModal, DeleteModal, TaskMutationModal } from "./modals";
+import {
+  BoardMutationModal,
+  DeleteModal,
+  TaskMutationFormValues,
+  TaskMutationModal
+} from "./modals";
 
 interface NavigationProps {
   activeBoard: Board;
@@ -32,6 +37,7 @@ const Navigation: FC<NavigationProps> = ({
   const [modalIsVisible, setModalIsVisible] = useState(false);
   const listQuery = trpc.useQuery(["boards.list"]);
   const handleAddNewBoardClick = () => setModalIsVisible(true);
+  const createBoard = trpc.useMutation("boards.create");
 
   if (!listQuery.data) {
     return <div>Loading...</div>;
@@ -62,7 +68,9 @@ const Navigation: FC<NavigationProps> = ({
           </div>
         </div>
         <div className="flex flex-row items-center justify-center">
-          <NewTaskButton />
+          <NewTaskButton
+            statuses={activeBoard.columns.map(({ id, name }) => ({ id, name }))}
+          />
           <BoardSettingsButton board={activeBoard} />
         </div>
       </div>
@@ -222,10 +230,33 @@ const ThemeToggle: FC<ThemeToggleProps> = () => {
 
 interface NewTaskButtonProps {
   disabled?: boolean;
+  statuses: { id: number; name: string }[];
 }
 
-const NewTaskButton: FC<NewTaskButtonProps> = ({ disabled = false }) => {
+const NewTaskButton: FC<NewTaskButtonProps> = ({
+  disabled = false,
+  statuses,
+}) => {
   const [modalIsVisible, setModalIsVisible] = useState(false);
+
+  const trpcCtx = trpc.useContext();
+  const createTask = trpc.useMutation("boards.createTask", {
+    onSuccess: () => {
+      trpcCtx.invalidateQueries("boards.get");
+    },
+  });
+  function handleTaskCreate({ subtasks, ...task }: TaskMutationFormValues) {
+    createTask.mutate({
+      task: {
+        ...task,
+        subtasks: subtasks.map(({ name }) => ({
+          title: name,
+          isCompleted: false,
+        })),
+      },
+    });
+    setModalIsVisible(false);
+  }
   return (
     <>
       <button
@@ -246,7 +277,8 @@ const NewTaskButton: FC<NewTaskButtonProps> = ({ disabled = false }) => {
         </h4>
       </button>
       <TaskMutationModal
-        onSubmit={(data) => console.log(data)}
+        statuses={statuses}
+        onSubmit={handleTaskCreate}
         title="Add New Task"
         submitButtonLabel="Add Task"
         open={modalIsVisible}
@@ -263,7 +295,17 @@ interface BoardSettingsButtonProps {
 const BoardSettingsButton: FC<BoardSettingsButtonProps> = ({ board }) => {
   const [editModalIsOpen, setEditModalOpen] = useState(false);
   const [deleteModalIsOpen, setDeleteModalOpen] = useState(false);
-
+  const ctx = trpc.useContext();
+  const mutation = trpc.useMutation(["boards.delete"], {
+    onSuccess: () => {
+      ctx.invalidateQueries(["boards.get", { id: board.id }]);
+      ctx.invalidateQueries(["boards.list"]);
+    },
+  });
+  function handleBoardDelete() {
+    mutation.mutate({ id: board.id });
+    setDeleteModalOpen(false);
+  }
   return (
     <>
       <Menu as="div" className="relative">
@@ -315,14 +357,14 @@ const BoardSettingsButton: FC<BoardSettingsButtonProps> = ({ board }) => {
         }}
       />
       <DeleteModal
-        title="Delete this task?"
+        title="Delete this board?"
         open={deleteModalIsOpen}
+        onDelete={handleBoardDelete}
         onClose={() => {
           setDeleteModalOpen(false);
         }}
       >
-        Are you sure you want to delete the &lsquo;Build settings UI&rsquo; task
-        and its subtasks? This action cannot be reversed.
+        {`Are you sure you want to delete the '${board.name}' board? This action will remove all columns and tasks and cannot be reversed.`}
       </DeleteModal>
     </>
   );
