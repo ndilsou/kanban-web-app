@@ -17,7 +17,7 @@ export function RemovableTextInput<FormValues>({
       <input
         type="text"
         className="form-input flex-grow rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
-        {...register(fieldName)}
+        {...register(fieldName, { required: true, minLength: 1 })}
       />
       <button onClick={onCrossClick} className="ml-4">
         <CrossIcon className="h-4 w-4 fill-current text-medium-grey" />

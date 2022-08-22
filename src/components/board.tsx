@@ -5,20 +5,57 @@ import {
   getTaskCompletedCount,
   Task,
 } from "@kanban/domain";
-import { ViewCardModal } from "./modals";
+import {
+  DeleteModal,
+  TaskMutationFormValues,
+  TaskMutationModal,
+  ViewCardModal,
+} from "./modals";
+import { trpc } from "../utils/trpc";
+import { SubmitHandler } from "react-hook-form";
 
 export interface BoardProps {
+  boardId: number;
   columns: ColumnData[];
 }
 
-const Board: FC<BoardProps> = ({ columns }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeTask, setActiveTask] = useState<Task>();
+type TaskFragment = { id: number; title: string };
+
+const Board: FC<BoardProps> = ({ boardId, columns }) => {
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [activeTask, setActiveTask] = useState<TaskFragment | null>(null);
+
+  const deleteTask = trpc.useMutation("boards.deleteTask", {
+    onSuccess: () => {
+      const ctx = trpc.useContext();
+      ctx.invalidateQueries(["boards.get", { id: boardId }]);
+    },
+  });
   function handleCardClick(task: Task) {
-    console.log(task);
-    setActiveTask(task);
-    setIsVisible(true);
+    setActiveTask({ id: task.id, title: task.title });
+    setIsViewModalVisible(true);
   }
+
+  const updateTask = trpc.useMutation("boards.updateTask");
+  function handleTaskEditSubmission({
+    subtasks,
+    ...task
+  }: TaskMutationFormValues) {
+    // updateTask.mutate({
+    //   task: { ...task, subtasks: subtasks.map((st) => ({ title: st.name })) },
+    // });
+    setIsEditModalVisible(false);
+  }
+
+  function handleDeleteTask() {
+    if (activeTask === null) return;
+    deleteTask.mutate({ id: activeTask.id });
+    setIsDeleteModalVisible(false);
+  }
+
+  const statuses = columns.map(({ id, name }) => ({ id, name }));
   return (
     <>
       {columns.length > 0 ? (
@@ -35,11 +72,41 @@ const Board: FC<BoardProps> = ({ columns }) => {
           <EmptyBoardWidget />
         </div>
       )}
-      <ViewCardModal
-        open={isVisible}
-        task={activeTask}
-        onClose={() => setIsVisible(false)}
-      />
+      {activeTask !== null ? (
+        <>
+          <ViewCardModal
+            open={isViewModalVisible}
+            taskId={activeTask.id}
+            statuses={statuses}
+            onClose={() => setIsViewModalVisible(false)}
+            onDeleteClick={() => {
+              setIsViewModalVisible(false);
+              setIsDeleteModalVisible(true);
+            }}
+            onEditClick={() => {
+              setIsViewModalVisible(false);
+              setIsEditModalVisible(true);
+            }}
+          />
+          <TaskEditModal
+            taskId={activeTask.id}
+            statuses={statuses}
+            open={isEditModalVisible}
+            onClose={() => setIsEditModalVisible(false)}
+            onSubmit={handleTaskEditSubmission}
+          />
+          <DeleteModal
+            title="Delete this task?"
+            open={isDeleteModalVisible}
+            onDelete={handleDeleteTask}
+            onClose={() => {
+              setIsDeleteModalVisible(false);
+            }}
+          >
+            {`Are you sure you want to delete the '${activeTask.title}' task and its subtasks? This action cannot be reversed.`}
+          </DeleteModal>
+        </>
+      ) : null}
     </>
   );
 };
@@ -125,3 +192,33 @@ const Card: FC<CardProps> = ({ task, onClick }) => {
   );
 };
 
+interface TaskEditModalProps {
+  taskId: number;
+  statuses: { id: number; name: string }[];
+  open: boolean;
+  onClose: () => void;
+  onSubmit: SubmitHandler<TaskMutationFormValues>;
+}
+function TaskEditModal({
+  taskId,
+  statuses,
+  open,
+  onClose,
+  onSubmit,
+}: TaskEditModalProps) {
+  const query = trpc.useQuery(["boards.getTask", { id: taskId }]);
+  if (!query.data) {
+    return <>Loading...</>;
+  }
+  return (
+    <TaskMutationModal
+      title="Edit Task"
+      statuses={statuses}
+      task={query.data}
+      open={open}
+      onClose={onClose}
+      submitButtonLabel="Save Changes"
+      onSubmit={onSubmit}
+    />
+  );
+}

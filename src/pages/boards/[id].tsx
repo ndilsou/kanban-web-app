@@ -53,7 +53,7 @@ const Page: NextPage<PageProps> = ({ id }) => {
           " h-full overflow-hidden transition-[width,transform] delay-150 duration-500 ease-in-out"
         )}
       >
-        <Board columns={getQuery.data.columns} />
+        <Board boardId={getQuery.data.id} columns={getQuery.data.columns} />
       </main>
     </div>
   );
