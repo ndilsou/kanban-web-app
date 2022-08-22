@@ -1,3 +1,3 @@
-# Create T3 App
+# Kanban Web App
 
-This is an app bootstrapped according to the [init.tips](https://init.tips) stack, also known as the T3-Stack.
+A Trello clone using NextJS/TailwindCSS/TypeScript/TRPC.
