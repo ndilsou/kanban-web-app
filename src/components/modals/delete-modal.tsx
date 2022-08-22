@@ -22,7 +22,7 @@ export const DeleteModal: FC<DeleteModalProps> = ({
     <Dialog className="relative z-40" open={open} onClose={onClose}>
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center px-4">
-        <Dialog.Panel className="z-50 w-full max-w-md rounded-lg bg-white p-6 dark:bg-dark-grey md:w-120 md:px-8 md:pt-8 md:pb-10">
+        <Dialog.Panel className="z-50 w-full max-w-md rounded-lg bg-white p-6 dark:bg-dark-grey sm:w-120 sm:max-w-none sm:px-8 sm:pt-8 sm:pb-10 lg:max-w-lg">
           <Dialog.Title className="text-start font-bold text-red">
             {title}
           </Dialog.Title>
