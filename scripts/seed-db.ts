@@ -26,20 +26,17 @@ async function main() {
             create: columns.map(({ name, tasks }) => ({
               name,
               tasks: {
-                create: tasks.map(
-                  ({ id, description, status, subtasks, title }) => ({
-                    id,
-                    description,
-                    status,
-                    title,
-                    subtasks: {
-                      create: subtasks.map(({ title, isCompleted }) => ({
-                        title,
-                        isCompleted,
-                      })),
-                    },
-                  })
-                ),
+                create: tasks.map(({ id, description, subtasks, title }) => ({
+                  id,
+                  description,
+                  title,
+                  subtasks: {
+                    create: subtasks.map(({ title, isCompleted }) => ({
+                      title,
+                      isCompleted,
+                    })),
+                  },
+                })),
               },
             })),
           },

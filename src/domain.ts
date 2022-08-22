@@ -7,8 +7,8 @@ export interface Task {
   id: number;
   title: string;
   description: string;
-  status: string;
   subtasks: SubTask[];
+  columnId: number;
 }
 
 export interface Column {

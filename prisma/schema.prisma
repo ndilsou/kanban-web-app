@@ -19,24 +19,23 @@ model Board {
 model Column {
   id      Int    @id @default(autoincrement())
   name    String
-  Board   Board  @relation(fields: [boardId], references: [id])
+  Board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId Int
   tasks   Task[]
 }
 
 model Task {
   id          Int       @id @default(autoincrement())
-  Column      Column    @relation(fields: [columnId], references: [id])
+  Column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
   columnId    Int
   title       String
   description String
-  status      String
   subtasks    Subtask[]
 }
 
 model Subtask {
   id     Int   @id @default(autoincrement())
-  Task   Task @relation(fields: [taskId], references: [id])
+  Task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId Int
   title String
   isCompleted Boolean
