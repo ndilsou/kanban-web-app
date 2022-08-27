@@ -1,8 +1,10 @@
 import { Dialog } from "@headlessui/react";
 import { RemovableTextInput } from "@kanban/components/modals/removable-text-input";
-import { FC, useMemo, useEffect } from "react";
+import { FC, useMemo, useEffect, useState } from "react";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { Task } from "@kanban/domain";
+import { zip } from "lodash";
+import { Except } from "type-fest";
 
 export interface TaskMutationModalProps {
   title: string;
@@ -11,7 +13,7 @@ export interface TaskMutationModalProps {
   task?: Task;
   statuses: { id: number; name: string }[];
   onClose: () => void;
-  onSubmit: SubmitHandler<TaskMutationFormValues>;
+  onSubmit: SubmitHandler<TaskMutationSubmitInput>;
 }
 
 export type TaskMutationFormValues = {
@@ -19,6 +21,13 @@ export type TaskMutationFormValues = {
   description: string;
   subtasks: { name: string }[];
   columnId: number;
+};
+
+export type TaskMutationSubmitInput = Except<
+  TaskMutationFormValues,
+  "subtasks"
+> & {
+  subtasks: Task["subtasks"];
 };
 
 export const TaskMutationModal: FC<TaskMutationModalProps> = ({
@@ -43,6 +52,12 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     [task]
   );
 
+  const [subtasksCompleted, setSubtasksCompleted] = useState(() =>
+    task
+      ? task.subtasks.map((t) => t.isCompleted)
+      : Array(defaultValues.subtasks.length).fill(false)
+  );
+
   const {
     control,
     register,
@@ -61,6 +76,21 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
   useEffect(() => {
     reset(defaultValues);
   }, [defaultValues, reset]);
+
+  async function handleFormValues(values: TaskMutationFormValues) {
+    console.log({ values, subtasksCompleted });
+    const subtasks: Task["subtasks"] = zip(
+      values.subtasks,
+      subtasksCompleted
+    ).map(([a, b]) => {
+      const title = must(a?.name);
+      const isCompleted = must(b);
+      return { title, isCompleted };
+    });
+    const task: TaskMutationSubmitInput = { ...values, subtasks };
+    await onSubmit(task);
+  }
+
   return (
     <Dialog className="relative z-40" open={open} onClose={onClose}>
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
@@ -71,7 +101,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
           </Dialog.Title>
           <form
             className="mt-6 flex flex-col"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(handleFormValues)}
           >
             <div>
               <label
@@ -83,7 +113,13 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
               <input
                 id="task-title-id"
                 placeholder="eg. Take coffee break"
-                {...register("title", { required: true, minLength: 1 })}
+                {...register("title", {
+                  required: true,
+                  minLength: {
+                    value: 1,
+                    message: errors?.title?.message ?? "",
+                  },
+                })}
                 className="form-input mt-2 h-10 w-full items-center rounded-md border border-[#828fa3]/25 px-4 py-2 text-sm font-medium focus:border-main-purple dark:bg-dark-grey dark:text-white"
               />
             </div>
@@ -113,6 +149,9 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                       register={register}
                       onRemoveInput={() => {
                         remove(index);
+                        setSubtasksCompleted(
+                          subtasksCompleted.filter((_, i) => i !== index)
+                        );
                       }}
                     />
                   </li>
@@ -122,6 +161,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                 className="mt-3 flex h-10 w-full items-center justify-center rounded-2.5xl bg-[#635FC7]/10 text-center text-sm font-bold text-main-purple hover:bg-[#635FC7]/50 dark:bg-white dark:text-main-purple"
                 onClick={() => {
                   append({ name: "" });
+                  setSubtasksCompleted([...subtasksCompleted, false]);
                 }}
               >
                 + Add New Subtask
@@ -161,3 +201,10 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     </Dialog>
   );
 };
+
+function must<T>(value: T | undefined | null): T {
+  if (typeof value === "undefined" || value === null)
+    throw new Error("value is undefined");
+
+  return value;
+}

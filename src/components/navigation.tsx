@@ -22,6 +22,7 @@ import {
   TaskMutationFormValues,
   TaskMutationModal
 } from "./modals";
+import { TaskMutationSubmitInput } from "./modals/task-mutation-modal";
 
 interface NavigationProps {
   activeBoard: Board;
@@ -245,15 +246,9 @@ const NewTaskButton: FC<NewTaskButtonProps> = ({
       trpcCtx.invalidateQueries("boards.get");
     },
   });
-  function handleTaskCreate({ subtasks, ...task }: TaskMutationFormValues) {
+  function handleTaskCreate(task: TaskMutationSubmitInput) {
     createTask.mutate({
-      task: {
-        ...task,
-        subtasks: subtasks.map(({ name }) => ({
-          title: name,
-          isCompleted: false,
-        })),
-      },
+      task,
     });
     setModalIsVisible(false);
   }

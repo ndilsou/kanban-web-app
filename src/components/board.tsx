@@ -13,6 +13,7 @@ import {
 } from "./modals";
 import { trpc } from "../utils/trpc";
 import { SubmitHandler } from "react-hook-form";
+import { TaskMutationSubmitInput } from "./modals/task-mutation-modal";
 
 export interface BoardProps {
   boardId: number;
@@ -39,10 +40,8 @@ const Board: FC<BoardProps> = ({ boardId, columns }) => {
   }
 
   const updateTask = trpc.useMutation("boards.updateTask");
-  function handleTaskEditSubmission({
-    subtasks,
-    ...task
-  }: TaskMutationFormValues) {
+  function handleTaskEditSubmission(submission: TaskMutationSubmitInput) {
+    console.log(submission);
     // updateTask.mutate({
     //   task: { ...task, subtasks: subtasks.map((st) => ({ title: st.name })) },
     // });
@@ -197,7 +196,7 @@ interface TaskEditModalProps {
   statuses: { id: number; name: string }[];
   open: boolean;
   onClose: () => void;
-  onSubmit: SubmitHandler<TaskMutationFormValues>;
+  onSubmit: SubmitHandler<TaskMutationSubmitInput>;
 }
 function TaskEditModal({
   taskId,
