@@ -50,7 +50,7 @@ const Page: NextPage<PageProps> = ({ id }) => {
             "w-[calc(100%-18rem)] translate-x-72 lg:w-[calc(100%-18.75rem)] lg:translate-x-75":
               menuIsOpen,
           },
-          " h-full overflow-hidden transition-[width,transform] delay-150 duration-500 ease-in-out"
+          " h-full overflow-scroll transition-[width,transform] delay-150 duration-500 ease-in-out"
         )}
       >
         <Board boardId={getQuery.data.id} columns={getQuery.data.columns} />
