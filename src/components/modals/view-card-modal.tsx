@@ -2,6 +2,7 @@ import { Dialog, Menu } from "@headlessui/react";
 import { FC } from "react";
 import { getTaskCompletedCount, Task } from "@kanban/domain";
 import { trpc } from "../../utils/trpc";
+import clsx from "clsx";
 
 export interface ViewCardModalProps {
   open: boolean;
@@ -20,7 +21,10 @@ export const ViewCardModal: FC<ViewCardModalProps> = ({
   onEditClick,
   onDeleteClick,
 }) => {
+  const ctx = trpc.useContext();
   const getTask = trpc.useQuery(["boards.getTask", { id }]);
+  const moveTask = trpc.useMutation("boards.moveTask");
+  const toggleSubtask = trpc.useMutation("boards.tasks.toggleSubtask");
   if (!getTask.data) {
     return <>Loading...</>;
   }
@@ -51,6 +55,50 @@ export const ViewCardModal: FC<ViewCardModalProps> = ({
                 <h6 className="text-xs font-bold text-medium-grey">
                   {completionLabel}
                 </h6>
+                <ol className="mt-4 flex flex-col gap-2">
+                  {task.subtasks.map((st) => (
+                    <li
+                      key={st.id}
+                      className="flex h-16 w-full list-none items-center rounded-1 bg-light-grey pl-4 pr-2 dark:bg-very-dark-grey"
+                    >
+                      <input
+                        type="checkbox"
+                        id={st.id.toString()}
+                        className="rounded-sm"
+                        checked={st.isCompleted}
+                        onChange={() => {
+                          st.isCompleted = !st.isCompleted;
+                          toggleSubtask.mutate(
+                            { id: st.id, isCompleted: st.isCompleted },
+                            {
+                              onSuccess: () => {
+                                ctx.invalidateQueries(["boards.get"], {
+                                  predicate: (query) => {
+                                    return query.queryKey[0] === "boards.get";
+                                  },
+                                });
+                                ctx.invalidateQueries([
+                                  "boards.getTask",
+                                  { id: st.taskId },
+                                ]);
+                              },
+                            }
+                          );
+                        }}
+                      />
+                      <span
+                        className={clsx(
+                          {
+                            "line-through opacity-50": st.isCompleted,
+                          },
+                          "ml-4 text-xs font-bold text-black dark:text-white"
+                        )}
+                      >
+                        {st.title}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
               </div>
               <div className="mt-6">
                 <h6 className="text-xs font-bold text-medium-grey">
@@ -58,11 +106,31 @@ export const ViewCardModal: FC<ViewCardModalProps> = ({
                 </h6>
                 <select
                   value={task.columnId}
-                  className="form-select mt-2 w-full rounded-1 border border-[rgb(130,143,163)]/25"
-                  onChange={(ev) => console.log(ev.currentTarget.value)}
+                  className="form-select mt-2 w-full rounded-1 border border-[rgb(130,143,163)]/25 bg-inherit text-black dark:text-white"
+                  onChange={(ev) => {
+                    const columnId = parseInt(ev.target.value);
+                    moveTask.mutate(
+                      { id: task.id, columnId },
+                      {
+                        onSuccess: () => {
+                          ctx.invalidateQueries(["boards.get"], {
+                            predicate: (query) => {
+                              return query.queryKey[0] === "boards.get";
+                            },
+                          });
+                          ctx.invalidateQueries([
+                            "boards.getTask",
+                            { id: task.id },
+                          ]);
+                        },
+                      }
+                    );
+                  }}
                 >
                   {statuses.map((status) => (
-                    <option key={status.id}>{status.name}</option>
+                    <option key={status.id} value={status.id}>
+                      {status.name}
+                    </option>
                   ))}
                 </select>
               </div>

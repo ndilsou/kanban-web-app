@@ -155,4 +155,22 @@ export const boardsRouter = createRouter()
         },
       });
     },
+  })
+  .mutation("tasks.toggleSubtask", {
+    input: z.object({ id: z.number(), isCompleted: z.boolean() }),
+    async resolve({ input: { id, isCompleted } }) {
+      await prisma.subtask.update({
+        where: { id },
+        data: { isCompleted },
+      });
+    },
+  })
+  .mutation("moveTask", {
+    input: z.object({ id: z.number(), columnId: z.number() }),
+    async resolve({ input: { id, columnId } }) {
+      await prisma.task.update({
+        where: { id },
+        data: { columnId },
+      });
+    },
   });
