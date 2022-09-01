@@ -14,6 +14,7 @@ import {
 import { trpc } from "../utils/trpc";
 import { SubmitHandler } from "react-hook-form";
 import { TaskMutationSubmitInput } from "./modals/task-mutation-modal";
+import { SetRequired } from "type-fest";
 
 export interface BoardProps {
   boardId: number;
@@ -28,9 +29,9 @@ const Board: FC<BoardProps> = ({ boardId, columns }) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [activeTask, setActiveTask] = useState<TaskFragment | null>(null);
 
+  const ctx = trpc.useContext();
   const deleteTask = trpc.useMutation("boards.deleteTask", {
     onSuccess: () => {
-      const ctx = trpc.useContext();
       ctx.invalidateQueries(["boards.get", { id: boardId }]);
     },
   });
@@ -41,15 +42,20 @@ const Board: FC<BoardProps> = ({ boardId, columns }) => {
 
   const updateTask = trpc.useMutation("boards.updateTask");
   function handleTaskEditSubmission(submission: TaskMutationSubmitInput) {
-    console.log(submission);
-    // updateTask.mutate({
-    //   task: { ...task, subtasks: subtasks.map((st) => ({ title: st.name })) },
-    // });
+    const task = validateTaskEdit(submission);
+    updateTask.mutate(
+      { task },
+      {
+        onSuccess: () => {
+          ctx.invalidateQueries(["boards.get", { id: boardId }]);
+        },
+      }
+    );
     setIsEditModalVisible(false);
   }
 
   function handleDeleteTask() {
-    if (activeTask === null) return;
+    if (activeTask === null) throw new Error("no task to delete");
     deleteTask.mutate({ id: activeTask.id });
     setIsDeleteModalVisible(false);
   }
@@ -221,3 +227,14 @@ function TaskEditModal({
     />
   );
 }
+
+type ValidateTaskEditOutput = SetRequired<TaskMutationSubmitInput, "id">;
+
+const validateTaskEdit = (
+  task: TaskMutationSubmitInput
+): ValidateTaskEditOutput => {
+  if (typeof task.id === "undefined") {
+    throw new Error(`missing id for edited task{title: '${task.title}'}`);
+  }
+  return task as ValidateTaskEditOutput;
+};

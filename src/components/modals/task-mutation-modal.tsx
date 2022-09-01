@@ -2,9 +2,9 @@ import { Dialog } from "@headlessui/react";
 import { RemovableTextInput } from "@kanban/components/modals/removable-text-input";
 import { FC, useMemo, useEffect, useState } from "react";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
-import { Task } from "@kanban/domain";
+import { SubTask, Task } from "@kanban/domain";
 import { zip } from "lodash";
-import { Except } from "type-fest";
+import { Except, SetOptional } from "type-fest";
 
 export interface TaskMutationModalProps {
   title: string;
@@ -17,17 +17,15 @@ export interface TaskMutationModalProps {
 }
 
 export type TaskMutationFormValues = {
+  id?: number;
   title: string;
   description: string;
   subtasks: { name: string }[];
   columnId: number;
 };
 
-export type TaskMutationSubmitInput = Except<
-  TaskMutationFormValues,
-  "subtasks"
-> & {
-  subtasks: Task["subtasks"];
+export type TaskMutationSubmitInput = Except<TaskMutationFormValues, "subtasks"> & {
+  subtasks: SetOptional<SubTask, "id">[];
 };
 
 export const TaskMutationModal: FC<TaskMutationModalProps> = ({
@@ -41,6 +39,7 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
 }) => {
   const defaultValues = useMemo(
     () => ({
+      id: task?.id,
       title: task?.title,
       description: task?.description,
       columnId: task?.columnId,
@@ -52,10 +51,16 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
     [task]
   );
 
-  const [subtasksCompleted, setSubtasksCompleted] = useState(() =>
-    task
-      ? task.subtasks.map((t) => t.isCompleted)
-      : Array(defaultValues.subtasks.length).fill(false)
+  type SubTaskFragment = {
+    id?: number;
+    isCompleted: boolean;
+  };
+
+  const [subtasksFragments, setSubtaskFragments] = useState<SubTaskFragment[]>(
+    () =>
+      task
+        ? task.subtasks.map((t) => ({ id: t.id, isCompleted: t.isCompleted }))
+        : defaultValues.subtasks.map(() => ({ isCompleted: false }))
   );
 
   const {
@@ -78,16 +83,17 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
   }, [defaultValues, reset]);
 
   async function handleFormValues(values: TaskMutationFormValues) {
-    console.log({ values, subtasksCompleted });
-    const subtasks: Task["subtasks"] = zip(
+    console.log({ values, subtasksCompleted: subtasksFragments });
+    const subtasks: SetOptional<SubTask, "id">[] = zip(
       values.subtasks,
-      subtasksCompleted
+      subtasksFragments
     ).map(([a, b]) => {
       const title = must(a?.name);
-      const isCompleted = must(b);
-      return { title, isCompleted };
+      const { isCompleted, id } = must(b);
+      return { title, isCompleted, id };
     });
     const task: TaskMutationSubmitInput = { ...values, subtasks };
+    console.log(task);
     await onSubmit(task);
   }
 
@@ -149,8 +155,8 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                       register={register}
                       onRemoveInput={() => {
                         remove(index);
-                        setSubtasksCompleted(
-                          subtasksCompleted.filter((_, i) => i !== index)
+                        setSubtaskFragments(
+                          subtasksFragments.filter((_, i) => i !== index)
                         );
                       }}
                     />
@@ -161,7 +167,10 @@ export const TaskMutationModal: FC<TaskMutationModalProps> = ({
                 className="mt-3 flex h-10 w-full items-center justify-center rounded-2.5xl bg-[#635FC7]/10 text-center text-sm font-bold text-main-purple hover:bg-[#635FC7]/50 dark:bg-white dark:text-main-purple"
                 onClick={() => {
                   append({ name: "" });
-                  setSubtasksCompleted([...subtasksCompleted, false]);
+                  setSubtaskFragments([
+                    ...subtasksFragments,
+                    { isCompleted: false },
+                  ]);
                 }}
               >
                 + Add New Subtask
